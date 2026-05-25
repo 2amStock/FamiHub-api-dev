@@ -108,4 +108,75 @@ namespace FamiHub.API.DTOs
         public DateTime SubmittedAt { get; set; }
         public UserDto? Child { get; set; }
     }
+
+    // ========== Meal Suggestion DTOs ==========
+
+    // Request gợi ý món ăn từ AI
+    public class MealSuggestionRequestDto
+    {
+        public string MealType { get; set; } = "Lunch"; // Breakfast, Lunch, Dinner, Snack
+        public int ServingSize { get; set; } = 4;
+        public string? AvailableIngredients { get; set; } // Nguyên liệu có sẵn
+        public string? CuisinePreference { get; set; } // Loại ẩm thực ưa thích
+        public string? AdditionalNotes { get; set; } // Ghi chú (ăn kiêng, nhanh gọn...)
+        public int NumberOfDishes { get; set; } = 3; // Số món muốn gợi ý
+    }
+
+    // Response gợi ý món ăn
+    public class MealSuggestionDto
+    {
+        public int Id { get; set; }
+        public string MealType { get; set; } = string.Empty;
+        public string DishName { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public List<IngredientDto> Ingredients { get; set; } = new();
+        public List<string> Instructions { get; set; } = new();
+        public int ServingSize { get; set; }
+        public int EstimatedTime { get; set; }
+        public string? DifficultyLevel { get; set; }
+        public string? CuisineType { get; set; }
+        public NutritionInfoDto? NutritionInfo { get; set; }
+        public bool IsFavorite { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string? RequestedByName { get; set; }
+    }
+
+    // Chi tiết nguyên liệu
+    public class IngredientDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Amount { get; set; } = string.Empty;
+        public string? Unit { get; set; }
+        public string? Note { get; set; } // Ghi chú (có thể thay bằng...)
+    }
+
+    // Thông tin dinh dưỡng
+    public class NutritionInfoDto
+    {
+        public string? Calories { get; set; }
+        public string? Protein { get; set; }
+        public string? Carbs { get; set; }
+        public string? Fat { get; set; }
+    }
+
+    // Cập nhật sở thích ẩm thực
+    public class UpdateFoodPreferenceDto
+    {
+        public List<string>? FavoriteDishes { get; set; }
+        public List<string>? DislikedIngredients { get; set; }
+        public List<string>? DietaryRestrictions { get; set; }
+        public List<string>? CuisinePreferences { get; set; }
+    }
+
+    // Response sở thích ẩm thực
+    public class FoodPreferenceDto
+    {
+        public int UserId { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public List<string> FavoriteDishes { get; set; } = new();
+        public List<string> DislikedIngredients { get; set; } = new();
+        public List<string> DietaryRestrictions { get; set; } = new();
+        public List<string> CuisinePreferences { get; set; } = new();
+    }
 }
+
