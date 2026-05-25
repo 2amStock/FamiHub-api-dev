@@ -11,6 +11,8 @@ namespace FamiHub.API.Data
         public DbSet<User> Users { get; set; }
         public DbSet<FamilyTask> Tasks { get; set; }
         public DbSet<TaskProof> TaskProofs { get; set; }
+        public DbSet<MealSuggestion> MealSuggestions { get; set; }
+        public DbSet<UserFoodPreference> UserFoodPreferences { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -69,6 +71,31 @@ namespace FamiHub.API.Data
                 .WithMany(u => u.Proofs)
                 .HasForeignKey(p => p.ChildUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // MealSuggestion
+            modelBuilder.Entity<MealSuggestion>()
+                .HasOne(m => m.Family)
+                .WithMany()
+                .HasForeignKey(m => m.FamilyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MealSuggestion>()
+                .HasOne(m => m.RequestedBy)
+                .WithMany()
+                .HasForeignKey(m => m.RequestedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // UserFoodPreference
+            modelBuilder.Entity<UserFoodPreference>()
+                .HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<UserFoodPreference>()
+                .HasIndex(p => p.UserId)
+                .IsUnique();
         }
     }
 }
+

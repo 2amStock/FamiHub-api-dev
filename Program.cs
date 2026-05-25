@@ -46,6 +46,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<FileService>();
+builder.Services.AddScoped<GeminiApiService>();
+builder.Services.AddScoped<MealSuggestionService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 
