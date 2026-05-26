@@ -20,6 +20,17 @@ namespace FamiHub.API.DTOs
         public string Token { get; set; } = string.Empty;
         public UserDto User { get; set; } = null!;
     }
+    
+    public class VerifyOtpDto
+    {
+        public string Email { get; set; } = string.Empty;
+        public string OtpCode { get; set; } = string.Empty;
+    }
+
+    public class ResendOtpDto
+    {
+        public string Email { get; set; } = string.Empty;
+    }
 
     // User DTOs
     public class UserDto
@@ -32,6 +43,8 @@ namespace FamiHub.API.DTOs
         public string? FamilyName { get; set; }
         public int Points { get; set; }
         public string? Avatar { get; set; }
+        public int CurrentPlanId { get; set; }
+        public DateTime? SubscriptionExpiryTime { get; set; }
     }
 
     // Family DTOs

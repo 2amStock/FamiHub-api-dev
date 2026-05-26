@@ -48,10 +48,17 @@ namespace FamiHub.API.Controllers
             if (string.IsNullOrWhiteSpace(dto.Title))
                 return BadRequest(new { message = "Tiêu đề không được trống." });
 
-            var task = await _taskService.CreateTaskAsync(dto, GetUserId());
-            if (task == null) return BadRequest(new { message = "Không thể tạo task. Hãy đảm bảo bạn đã có gia đình." });
+            try
+            {
+                var task = await _taskService.CreateTaskAsync(dto, GetUserId());
+                if (task == null) return BadRequest(new { message = "Không thể tạo task. Hãy đảm bảo bạn đã có gia đình." });
 
-            return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
+                return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
+            }
+            catch (Exception ex) when (ex.Message == "LIMIT_EXCEEDED")
+            {
+                return StatusCode(403, new { message = "LIMIT_EXCEEDED: Tài khoản miễn phí chỉ được tạo tối đa 5 công việc mỗi ngày." });
+            }
         }
 
         [HttpPut("{id}")]

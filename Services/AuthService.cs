@@ -13,34 +13,67 @@ namespace FamiHub.API.Services
     {
         private readonly AppDbContext _db;
         private readonly IConfiguration _config;
+        private readonly IEmailService _emailService;
 
-        public AuthService(AppDbContext db, IConfiguration config)
+        public AuthService(AppDbContext db, IConfiguration config, IEmailService emailService)
         {
             _db = db;
             _config = config;
+            _emailService = emailService;
         }
 
         public async Task<AuthResponseDto?> RegisterAsync(RegisterDto dto)
         {
             if (await _db.Users.AnyAsync(u => u.Email == dto.Email))
-                return null;
+                return null; // Handle this in controller, maybe return a specific result
 
             if (!Enum.TryParse<UserRole>(dto.Role, out var role))
                 role = UserRole.Child;
 
-            var user = new User
+            if (role == UserRole.Parent)
             {
-                Name = dto.Name,
-                Email = dto.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Role = role
-            };
+                var otp = new Random().Next(100000, 999999).ToString();
+                
+                var user = new User
+                {
+                    Name = dto.Name,
+                    Email = dto.Email,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                    Role = role,
+                    IsEmailVerified = false,
+                    OtpCode = otp,
+                    OtpExpiryTime = DateTime.UtcNow.AddMinutes(5)
+                };
 
-            _db.Users.Add(user);
-            await _db.SaveChangesAsync();
+                _db.Users.Add(user);
+                await _db.SaveChangesAsync();
 
-            var token = GenerateToken(user);
-            return new AuthResponseDto { Token = token, User = MapToDto(user) };
+                await _emailService.SendEmailAsync(
+                    user.Email, 
+                    "FamiHub - Mã xác minh OTP", 
+                    $"Mã xác minh của bạn là: {otp}\nMã này sẽ hết hạn trong 5 phút."
+                );
+
+                // Do not generate token yet
+                return new AuthResponseDto { Token = string.Empty, User = MapToDto(user) };
+            }
+            else
+            {
+                var user = new User
+                {
+                    Name = dto.Name,
+                    Email = dto.Email,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                    Role = role,
+                    IsEmailVerified = true,
+                };
+
+                _db.Users.Add(user);
+                await _db.SaveChangesAsync();
+
+                var token = GenerateToken(user);
+                return new AuthResponseDto { Token = token, User = MapToDto(user) };
+            }
         }
 
         public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
@@ -52,8 +85,49 @@ namespace FamiHub.API.Services
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 return null;
 
+            if (!user.IsEmailVerified)
+                throw new Exception("unverified_email");
+
             var token = GenerateToken(user);
             return new AuthResponseDto { Token = token, User = MapToDto(user) };
+        }
+
+        public async Task<bool> VerifyOtpAsync(VerifyOtpDto dto)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null) return false;
+
+            if (user.IsEmailVerified) return true;
+
+            if (user.OtpCode == dto.OtpCode && user.OtpExpiryTime > DateTime.UtcNow)
+            {
+                user.IsEmailVerified = true;
+                user.OtpCode = null;
+                user.OtpExpiryTime = null;
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            
+            return false;
+        }
+
+        public async Task<bool> ResendOtpAsync(ResendOtpDto dto)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null || user.IsEmailVerified) return false;
+
+            var otp = new Random().Next(100000, 999999).ToString();
+            user.OtpCode = otp;
+            user.OtpExpiryTime = DateTime.UtcNow.AddMinutes(5);
+            await _db.SaveChangesAsync();
+
+            await _emailService.SendEmailAsync(
+                user.Email, 
+                "FamiHub - Mã xác minh OTP (Gửi lại)", 
+                $"Mã xác minh mới của bạn là: {otp}\nMã này sẽ hết hạn trong 5 phút."
+            );
+            
+            return true;
         }
 
         private string GenerateToken(User user)
@@ -99,7 +173,9 @@ namespace FamiHub.API.Services
             FamilyId = user.FamilyId,
             FamilyName = user.Family?.Name,
             Points = user.Points,
-            Avatar = user.Avatar
+            Avatar = user.Avatar,
+            CurrentPlanId = user.CurrentPlanId,
+            SubscriptionExpiryTime = user.SubscriptionExpiryTime
         };
     }
 }

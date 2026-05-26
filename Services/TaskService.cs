@@ -8,10 +8,12 @@ namespace FamiHub.API.Services
     public class TaskService
     {
         private readonly AppDbContext _db;
+        private readonly PaymentService _paymentService;
 
-        public TaskService(AppDbContext db)
+        public TaskService(AppDbContext db, PaymentService paymentService)
         {
             _db = db;
+            _paymentService = paymentService;
         }
 
         public async Task<List<TaskDto>> GetTasksAsync(int userId)
@@ -52,6 +54,18 @@ namespace FamiHub.API.Services
         {
             var parent = await _db.Users.FindAsync(parentUserId);
             if (parent == null || parent.FamilyId == null) return null;
+
+            // Check limits
+            var isPremium = await _paymentService.IsUserPremiumAsync(parentUserId);
+            if (!isPremium)
+            {
+                var todayTasks = await _db.Tasks
+                    .CountAsync(t => t.FamilyId == parent.FamilyId && t.CreatedAt.Date == DateTime.UtcNow.Date);
+                if (todayTasks >= 5)
+                {
+                    throw new Exception("LIMIT_EXCEEDED");
+                }
+            }
 
             if (dto.AssignedToUserId.HasValue)
             {

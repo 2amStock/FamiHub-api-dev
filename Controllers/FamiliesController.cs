@@ -15,10 +15,12 @@ namespace FamiHub.API.Controllers
     public class FamiliesController : ControllerBase
     {
         private readonly AppDbContext _db;
+        private readonly PaymentService _paymentService;
 
-        public FamiliesController(AppDbContext db)
+        public FamiliesController(AppDbContext db, PaymentService paymentService)
         {
             _db = db;
+            _paymentService = paymentService;
         }
 
         private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -61,6 +63,19 @@ namespace FamiHub.API.Controllers
             var family = await _db.Families.FirstOrDefaultAsync(f => f.InviteCode == dto.InviteCode.ToUpper());
             if (family == null)
                 return NotFound(new { message = "Mã mời không hợp lệ." });
+
+            var currentMembersCount = await _db.Users.CountAsync(u => u.FamilyId == family.Id);
+            
+            // Limit check
+            var parentUser = await _db.Users.FirstOrDefaultAsync(u => u.FamilyId == family.Id && u.Role == UserRole.Parent);
+            if (parentUser != null)
+            {
+                var isPremium = await _paymentService.IsUserPremiumAsync(parentUser.Id);
+                if (!isPremium && currentMembersCount >= 3)
+                {
+                    return StatusCode(403, new { message = "LIMIT_EXCEEDED: Tài khoản miễn phí chỉ được tối đa 3 thành viên." });
+                }
+            }
 
             user.FamilyId = family.Id;
             await _db.SaveChangesAsync();
