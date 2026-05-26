@@ -43,11 +43,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // Services
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<FileService>();
 builder.Services.AddScoped<GeminiApiService>();
 builder.Services.AddScoped<MealSuggestionService>();
+builder.Services.AddScoped<PaymentService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 
@@ -86,7 +88,6 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Auto migrate DB
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -102,6 +103,8 @@ using (var scope = app.Services.CreateScope())
         db.Database.EnsureCreated();
         Console.WriteLine("Database recreated successfully.");
     }
+
+
 }
 
 app.UseSwagger();

@@ -112,3 +112,5 @@ C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\obj\Debug\net8.0\
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\obj\Debug\net8.0\FamiHub.API.sourcelink.json
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\CloudinaryDotNet.dll
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\PayOS.dll
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\System.Text.Json.dll

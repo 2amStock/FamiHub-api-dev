@@ -33,11 +33,38 @@ namespace FamiHub.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            var result = await _authService.LoginAsync(dto);
-            if (result == null)
-                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng." });
+            try
+            {
+                var result = await _authService.LoginAsync(dto);
+                if (result == null)
+                    return Unauthorized(new { message = "Email hoặc mật khẩu không đúng." });
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex) when (ex.Message == "unverified_email")
+            {
+                return StatusCode(403, new { message = "Vui lòng xác thực email trước khi đăng nhập.", errorCode = "UNVERIFIED_EMAIL" });
+            }
+        }
+
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
+        {
+            var isVerified = await _authService.VerifyOtpAsync(dto);
+            if (!isVerified)
+                return BadRequest(new { message = "Mã xác thực không hợp lệ hoặc đã hết hạn." });
+
+            return Ok(new { message = "Xác thực email thành công. Bạn có thể đăng nhập ngay." });
+        }
+
+        [HttpPost("resend-otp")]
+        public async Task<IActionResult> ResendOtp([FromBody] ResendOtpDto dto)
+        {
+            var success = await _authService.ResendOtpAsync(dto);
+            if (!success)
+                return BadRequest(new { message = "Không thể gửi lại mã. Tài khoản không tồn tại hoặc đã được xác thực." });
+
+            return Ok(new { message = "Mã xác thực mới đã được gửi đến email của bạn." });
         }
 
         [Authorize]

@@ -39,6 +39,16 @@ namespace FamiHub.API.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public bool IsEmailVerified { get; set; } = false;
+        
+        [MaxLength(10)]
+        public string? OtpCode { get; set; }
+        
+        public DateTime? OtpExpiryTime { get; set; }
+
+        public int CurrentPlanId { get; set; } = 1;
+        public DateTime? SubscriptionExpiryTime { get; set; }
+
         public ICollection<FamilyTask> CreatedTasks { get; set; } = new List<FamilyTask>();
         public ICollection<FamilyTask> AssignedTasks { get; set; } = new List<FamilyTask>();
         public ICollection<TaskProof> Proofs { get; set; } = new List<TaskProof>();

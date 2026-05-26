@@ -13,6 +13,9 @@ namespace FamiHub.API.Data
         public DbSet<TaskProof> TaskProofs { get; set; }
         public DbSet<MealSuggestion> MealSuggestions { get; set; }
         public DbSet<UserFoodPreference> UserFoodPreferences { get; set; }
+        public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
+        public DbSet<UserSubscription> UserSubscriptions { get; set; }
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -95,6 +98,14 @@ namespace FamiHub.API.Data
             modelBuilder.Entity<UserFoodPreference>()
                 .HasIndex(p => p.UserId)
                 .IsUnique();
+
+            // Seed Subscription Plans
+            modelBuilder.Entity<SubscriptionPlan>().HasData(
+                new SubscriptionPlan { Id = 1, Name = "FREE", Price = 0m, DurationType = "MONTHLY", MaxMembers = 3, MaxTasksPerDay = 5, HasAI = false, HasCalendar = false, HasShoppingList = false, HasStudyTracking = false, HasAchievement = false },
+                new SubscriptionPlan { Id = 2, Name = "STARTER", Price = 79000m, DurationType = "MONTHLY", MaxMembers = 5, MaxTasksPerDay = 999, HasAI = false, HasCalendar = false, HasShoppingList = false, HasStudyTracking = true, HasAchievement = false },
+                new SubscriptionPlan { Id = 3, Name = "FAMILY", Price = 119000m, DurationType = "MONTHLY", MaxMembers = 999, MaxTasksPerDay = 999, HasAI = true, HasCalendar = true, HasShoppingList = true, HasStudyTracking = true, HasAchievement = true },
+                new SubscriptionPlan { Id = 4, Name = "YEARLY", Price = 1199000m, DurationType = "YEARLY", MaxMembers = 999, MaxTasksPerDay = 999, HasAI = true, HasCalendar = true, HasShoppingList = true, HasStudyTracking = true, HasAchievement = true }
+            );
         }
     }
 }
