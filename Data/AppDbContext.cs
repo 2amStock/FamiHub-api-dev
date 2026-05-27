@@ -16,6 +16,8 @@ namespace FamiHub.API.Data
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<UserSubscription> UserSubscriptions { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+        public DbSet<Reward> Rewards { get; set; }
+        public DbSet<RewardRedemption> RewardRedemptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -106,6 +108,43 @@ namespace FamiHub.API.Data
                 new SubscriptionPlan { Id = 3, Name = "FAMILY", Price = 119000m, DurationType = "MONTHLY", MaxMembers = 999, MaxTasksPerDay = 999, HasAI = true, HasCalendar = true, HasShoppingList = true, HasStudyTracking = true, HasAchievement = true },
                 new SubscriptionPlan { Id = 4, Name = "YEARLY", Price = 1199000m, DurationType = "YEARLY", MaxMembers = 999, MaxTasksPerDay = 999, HasAI = true, HasCalendar = true, HasShoppingList = true, HasStudyTracking = true, HasAchievement = true }
             );
+
+            // Reward
+            modelBuilder.Entity<Reward>()
+                .HasOne(r => r.Family)
+                .WithMany()
+                .HasForeignKey(r => r.FamilyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Reward>()
+                .HasOne(r => r.CreatedBy)
+                .WithMany()
+                .HasForeignKey(r => r.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Seed Fixed Rewards
+            modelBuilder.Entity<Reward>().HasData(
+                new Reward { Id = -1, FamilyId = null, CreatedByUserId = null, Title = "Xem TV 30 phút", RequiredPoints = 50, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+                new Reward { Id = -2, FamilyId = null, CreatedByUserId = null, Title = "Chơi game 1 giờ", RequiredPoints = 100, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+                new Reward { Id = -3, FamilyId = null, CreatedByUserId = null, Title = "Mua đồ ăn vặt", RequiredPoints = 150, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+            );
+
+            // RewardRedemption
+            modelBuilder.Entity<RewardRedemption>()
+                .HasOne(rr => rr.Reward)
+                .WithMany(r => r.Redemptions)
+                .HasForeignKey(rr => rr.RewardId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RewardRedemption>()
+                .HasOne(rr => rr.Child)
+                .WithMany()
+                .HasForeignKey(rr => rr.ChildUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<RewardRedemption>()
+                .Property(rr => rr.Status)
+                .HasConversion<string>();
         }
     }
 }

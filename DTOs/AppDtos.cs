@@ -20,7 +20,7 @@ namespace FamiHub.API.DTOs
         public string Token { get; set; } = string.Empty;
         public UserDto User { get; set; } = null!;
     }
-    
+
     public class VerifyOtpDto
     {
         public string Email { get; set; } = string.Empty;
@@ -190,6 +190,51 @@ namespace FamiHub.API.DTOs
         public List<string> DislikedIngredients { get; set; } = new();
         public List<string> DietaryRestrictions { get; set; } = new();
         public List<string> CuisinePreferences { get; set; } = new();
+    }
+
+    // Reward DTOs
+    public class CreateRewardDto
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public int RequiredPoints { get; set; }
+    }
+
+    public class UpdateRewardDto
+    {
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public int? RequiredPoints { get; set; }
+    }
+
+    public class RewardDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public int RequiredPoints { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public UserDto? CreatedBy { get; set; }
+    }
+
+    public class RewardRedemptionDto
+    {
+        public int Id { get; set; }
+        public int RewardId { get; set; }
+        public string RewardTitle { get; set; } = string.Empty;
+        public int RequiredPoints { get; set; }
+        public string? RewardDescription { get; set; }
+        public UserDto? Child { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string? ParentNote { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+    }
+
+    public class ApproveRedemptionDto
+    {
+        public bool Approved { get; set; }
+        public string? ParentNote { get; set; }
     }
 }
 
