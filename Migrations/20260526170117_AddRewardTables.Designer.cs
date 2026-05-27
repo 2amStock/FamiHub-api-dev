@@ -3,6 +3,7 @@ using System;
 using FamiHub.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FamiHub.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260526170117_AddRewardTables")]
+    partial class AddRewardTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -215,14 +218,14 @@ namespace FamiHub.API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("CreatedByUserId")
+                    b.Property<int>("CreatedByUserId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("varchar(1000)");
 
-                    b.Property<int?>("FamilyId")
+                    b.Property<int>("FamilyId")
                         .HasColumnType("int");
 
                     b.Property<int>("RequiredPoints")
@@ -243,29 +246,6 @@ namespace FamiHub.API.Migrations
                     b.HasIndex("FamilyId");
 
                     b.ToTable("Rewards");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = -1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            RequiredPoints = 50,
-                            Title = "Xem TV 30 phút"
-                        },
-                        new
-                        {
-                            Id = -2,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            RequiredPoints = 100,
-                            Title = "Chơi game 1 giờ"
-                        },
-                        new
-                        {
-                            Id = -3,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            RequiredPoints = 150,
-                            Title = "Mua đồ ăn vặt"
-                        });
                 });
 
             modelBuilder.Entity("FamiHub.API.Models.RewardRedemption", b =>
@@ -642,12 +622,14 @@ namespace FamiHub.API.Migrations
                     b.HasOne("FamiHub.API.Models.User", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("FamiHub.API.Models.Family", "Family")
                         .WithMany()
                         .HasForeignKey("FamilyId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("CreatedBy");
 

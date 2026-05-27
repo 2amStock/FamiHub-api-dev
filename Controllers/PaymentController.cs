@@ -41,6 +41,7 @@ namespace FamiHub.API.Controllers
             }
         }
 
+        // Endpoint trung gian để tự động Deep Link về App Flutter sau khi thanh toán qua trình duyệt
         [HttpGet("redirect-app")]
         public IActionResult RedirectToApp()
         {
