@@ -51,6 +51,7 @@ builder.Services.AddScoped<GeminiApiService>();
 builder.Services.AddScoped<MealSuggestionService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<RewardService>();
+builder.Services.AddScoped<FamilyEventService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 

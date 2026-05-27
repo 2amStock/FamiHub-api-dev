@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FamiHub.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5ad778c88402a7cc2d94bd581a4c62a14f811b67")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f650a1a6c4d9212c72678c70e9702f3c5f3ec6bc")]
 [assembly: System.Reflection.AssemblyProductAttribute("FamiHub.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FamiHub.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
