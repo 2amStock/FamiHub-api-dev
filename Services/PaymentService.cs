@@ -32,7 +32,7 @@ namespace FamiHub.API.Services
         {
             var user = await _db.Users.FindAsync(userId);
             if (user == null) throw new Exception("Không tìm thấy User trong Database.");
-            
+
             var plan = await _db.SubscriptionPlans.FindAsync(planId);
             if (plan == null) throw new Exception($"Không tìm thấy Gói cước (PlanId = {planId}) trong Database. Có thể bạn chưa chạy Migration nạp dữ liệu Gói cước.");
 
@@ -126,6 +126,21 @@ namespace FamiHub.API.Services
             var activeSub = await _db.UserSubscriptions
                 .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "ACTIVE" && s.EndDate > DateTime.UtcNow);
             return activeSub != null;
+        }
+
+        public async Task<SubscriptionPlan> GetCurrentPlanAsync(int userId)
+        {
+            var activeSub = await _db.UserSubscriptions
+                .Include(s => s.Plan)
+                .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "ACTIVE" && s.EndDate > DateTime.UtcNow);
+
+            if (activeSub != null && activeSub.Plan != null)
+            {
+                return activeSub.Plan;
+            }
+
+            return await _db.SubscriptionPlans.FirstOrDefaultAsync(p => p.Price == 0)
+                   ?? new SubscriptionPlan { Name = "Free", Price = 0, DurationType = "NONE", MaxMembers = 3, MaxTasksPerDay = 5, HasAI = false };
         }
     }
 }

@@ -70,10 +70,10 @@ namespace FamiHub.API.Controllers
             var parentUser = await _db.Users.FirstOrDefaultAsync(u => u.FamilyId == family.Id && u.Role == UserRole.Parent);
             if (parentUser != null)
             {
-                var isPremium = await _paymentService.IsUserPremiumAsync(parentUser.Id);
-                if (!isPremium && currentMembersCount >= 3)
+                var currentPlan = await _paymentService.GetCurrentPlanAsync(parentUser.Id);
+                if (currentMembersCount >= currentPlan.MaxMembers)
                 {
-                    return StatusCode(403, new { message = "LIMIT_EXCEEDED: Tài khoản miễn phí chỉ được tối đa 3 thành viên." });
+                    return StatusCode(403, new { message = $"LIMIT_EXCEEDED: Gói cước của bạn chỉ được tối đa {currentPlan.MaxMembers} thành viên." });
                 }
             }
 

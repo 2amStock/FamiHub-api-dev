@@ -68,7 +68,7 @@ namespace FamiHub.API.Controllers
                 </script>
             </body>
             </html>";
-            
+
             return Content(html, "text/html; charset=utf-8");
         }
 

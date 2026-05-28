@@ -13,11 +13,13 @@ namespace FamiHub.API.Data
         public DbSet<TaskProof> TaskProofs { get; set; }
         public DbSet<MealSuggestion> MealSuggestions { get; set; }
         public DbSet<UserFoodPreference> UserFoodPreferences { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<UserSubscription> UserSubscriptions { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
         public DbSet<Reward> Rewards { get; set; }
         public DbSet<RewardRedemption> RewardRedemptions { get; set; }
+        public DbSet<FamilyEvent> FamilyEvents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -145,6 +147,18 @@ namespace FamiHub.API.Data
             modelBuilder.Entity<RewardRedemption>()
                 .Property(rr => rr.Status)
                 .HasConversion<string>();
+            // FamilyEvent
+            modelBuilder.Entity<FamilyEvent>()
+                .HasOne(e => e.Family)
+                .WithMany()
+                .HasForeignKey(e => e.FamilyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FamilyEvent>()
+                .HasOne(e => e.CreatedBy)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
