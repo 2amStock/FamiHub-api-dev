@@ -25,6 +25,21 @@ namespace FamiHub.API.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Ép toàn bộ tên bảng thành chữ thường (lowercase) để tương thích với MySQL trên Linux (Railway)
+            modelBuilder.Entity<Family>().ToTable("families");
+            modelBuilder.Entity<User>().ToTable("users");
+            modelBuilder.Entity<FamilyTask>().ToTable("tasks");
+            modelBuilder.Entity<TaskProof>().ToTable("taskproofs");
+            modelBuilder.Entity<MealSuggestion>().ToTable("mealsuggestions");
+            modelBuilder.Entity<UserFoodPreference>().ToTable("userfoodpreferences");
+            modelBuilder.Entity<Notification>().ToTable("notifications");
+            modelBuilder.Entity<SubscriptionPlan>().ToTable("subscriptionplans");
+            modelBuilder.Entity<UserSubscription>().ToTable("usersubscriptions");
+            modelBuilder.Entity<PaymentTransaction>().ToTable("paymenttransactions");
+            modelBuilder.Entity<Reward>().ToTable("rewards");
+            modelBuilder.Entity<RewardRedemption>().ToTable("rewardredemptions");
+            modelBuilder.Entity<FamilyEvent>().ToTable("familyevents");
+
             // Family
             modelBuilder.Entity<Family>()
                 .HasIndex(f => f.InviteCode).IsUnique();
