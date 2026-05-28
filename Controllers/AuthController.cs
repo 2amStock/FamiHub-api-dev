@@ -11,10 +11,12 @@ namespace FamiHub.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
+        private readonly IEmailService _emailService;
 
-        public AuthController(AuthService authService)
+        public AuthController(AuthService authService, IEmailService emailService)
         {
             _authService = authService;
+            _emailService = emailService;
         }
 
         [HttpPost("register")]
@@ -75,6 +77,23 @@ namespace FamiHub.API.Controllers
             var result = await _authService.GetUserByIdAsync(userId);
             if (result == null) return NotFound();
             return Ok(result);
+        }
+
+        [HttpGet("test-email")]
+        public async Task<IActionResult> TestEmail([FromQuery] string to)
+        {
+            if (string.IsNullOrWhiteSpace(to))
+                return BadRequest(new { message = "Vui lòng cung cấp email nhận (tham số 'to')." });
+
+            try
+            {
+                await _emailService.SendEmailAsync(to, "Test Gửi Email từ FamiHub", "<h1>Thành công!</h1><p>Đây là email test gửi từ hệ thống FamiHub API.</p>");
+                return Ok(new { message = $"Đã gửi email test thành công tới {to}!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi gửi mail.", error = ex.Message });
+            }
         }
     }
 }
