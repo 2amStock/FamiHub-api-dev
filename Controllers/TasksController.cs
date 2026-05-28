@@ -55,9 +55,11 @@ namespace FamiHub.API.Controllers
 
                 return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
             }
-            catch (Exception ex) when (ex.Message == "LIMIT_EXCEEDED")
+            catch (Exception ex) when (ex.Message.StartsWith("LIMIT_EXCEEDED"))
             {
-                return StatusCode(403, new { message = "LIMIT_EXCEEDED: Tài khoản miễn phí chỉ được tạo tối đa 5 công việc mỗi ngày." });
+                var parts = ex.Message.Split(':');
+                var max = parts.Length > 1 ? parts[1] : "5";
+                return StatusCode(403, new { message = $"LIMIT_EXCEEDED: Gói cước của bạn chỉ được tạo tối đa {max} công việc mỗi ngày." });
             }
         }
 

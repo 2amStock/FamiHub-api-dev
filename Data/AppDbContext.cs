@@ -13,6 +13,7 @@ namespace FamiHub.API.Data
         public DbSet<TaskProof> TaskProofs { get; set; }
         public DbSet<MealSuggestion> MealSuggestions { get; set; }
         public DbSet<UserFoodPreference> UserFoodPreferences { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<UserSubscription> UserSubscriptions { get; set; }
         public DbSet<PaymentTransaction> PaymentTransactions { get; set; }

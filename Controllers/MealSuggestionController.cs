@@ -36,6 +36,17 @@ namespace FamiHub.API.Controllers
             if (familyId == null)
                 return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
+            // Kiểm tra gói cước có hỗ trợ AI không
+            var db = HttpContext.RequestServices.GetRequiredService<FamiHub.API.Data.AppDbContext>();
+            var user = await db.Users.FindAsync(userId);
+            if (user == null) return Unauthorized();
+
+            var currentPlan = await db.SubscriptionPlans.FindAsync(user.CurrentPlanId);
+            if (currentPlan == null || !currentPlan.HasAI)
+            {
+                return StatusCode(403, new { message = "Gói cước hiện tại của bạn không hỗ trợ tính năng AI. Vui lòng nâng cấp lên gói Family hoặc Yearly để sử dụng tính năng này." });
+            }
+
             var results = await _mealService.SuggestMealsAsync(request, userId, familyId.Value);
 
             if (results.Count == 0)

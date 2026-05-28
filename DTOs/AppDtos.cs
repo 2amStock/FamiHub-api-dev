@@ -236,5 +236,28 @@ namespace FamiHub.API.DTOs
         public bool Approved { get; set; }
         public string? ParentNote { get; set; }
     }
-}
 
+    public class SubscriptionPlanDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public string DurationType { get; set; } = string.Empty;
+        public int MaxMembers { get; set; }
+        public int MaxTasksPerDay { get; set; }
+        public bool HasAI { get; set; }
+        public bool HasCalendar { get; set; }
+        public bool HasShoppingList { get; set; }
+        public bool HasStudyTracking { get; set; }
+        public bool HasAchievement { get; set; }
+    }
+
+    public class UserSubscriptionDto
+    {
+        public int UserId { get; set; }
+        public SubscriptionPlanDto Plan { get; set; } = null!;
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Status { get; set; } = string.Empty;
+    }
+}

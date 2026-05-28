@@ -56,15 +56,12 @@ namespace FamiHub.API.Services
             if (parent == null || parent.FamilyId == null) return null;
 
             // Check limits
-            var isPremium = await _paymentService.IsUserPremiumAsync(parentUserId);
-            if (!isPremium)
+            var currentPlan = await _paymentService.GetCurrentPlanAsync(parentUserId);
+            var todayTasks = await _db.Tasks
+                .CountAsync(t => t.FamilyId == parent.FamilyId && t.CreatedAt.Date == DateTime.UtcNow.Date);
+            if (todayTasks >= currentPlan.MaxTasksPerDay)
             {
-                var todayTasks = await _db.Tasks
-                    .CountAsync(t => t.FamilyId == parent.FamilyId && t.CreatedAt.Date == DateTime.UtcNow.Date);
-                if (todayTasks >= 5)
-                {
-                    throw new Exception("LIMIT_EXCEEDED");
-                }
+                throw new Exception($"LIMIT_EXCEEDED:{currentPlan.MaxTasksPerDay}");
             }
 
             if (dto.AssignedToUserId.HasValue)
@@ -82,6 +79,17 @@ namespace FamiHub.API.Services
                 };
 
                 _db.Tasks.Add(task);
+                
+                var notification = new Notification
+                {
+                    UserId = dto.AssignedToUserId.Value,
+                    Title = "Nhiệm vụ mới",
+                    Message = $"Ba mẹ vừa giao cho con nhiệm vụ: {task.Title}",
+                    Type = "TASK",
+                    RelatedId = task.Id
+                };
+                _db.Notifications.Add(notification);
+
                 await _db.SaveChangesAsync();
                 return await GetTaskByIdAsync(task.Id, parentUserId);
             }
@@ -110,6 +118,15 @@ namespace FamiHub.API.Services
                     };
                     _db.Tasks.Add(task);
                     if (firstTask == null) firstTask = task;
+
+                    var notification = new Notification
+                    {
+                        UserId = child.Id,
+                        Title = "Nhiệm vụ mới",
+                        Message = $"Ba mẹ vừa giao cho con nhiệm vụ: {task.Title}",
+                        Type = "TASK"
+                    };
+                    _db.Notifications.Add(notification);
                 }
 
                 await _db.SaveChangesAsync();
@@ -169,6 +186,17 @@ namespace FamiHub.API.Services
             task.Status = Models.TaskStatus.Submitted;
             task.UpdatedAt = DateTime.UtcNow;
             _db.TaskProofs.Add(proof);
+
+            var notification = new Notification
+            {
+                UserId = task.CreatedByUserId,
+                Title = "Nộp minh chứng",
+                Message = $"Bé vừa nộp minh chứng cho nhiệm vụ: {task.Title}. Hãy kiểm tra và duyệt nhé!",
+                Type = "TASK",
+                RelatedId = task.Id
+            };
+            _db.Notifications.Add(notification);
+
             await _db.SaveChangesAsync();
 
             return await GetTaskByIdAsync(taskId, childUserId);
@@ -191,6 +219,21 @@ namespace FamiHub.API.Services
             if (dto.Approved && task.AssignedTo != null)
             {
                 task.AssignedTo.Points += task.Points;
+            }
+
+            if (task.AssignedToUserId.HasValue)
+            {
+                var notification = new Notification
+                {
+                    UserId = task.AssignedToUserId.Value,
+                    Title = dto.Approved ? "Nhiệm vụ được duyệt" : "Nhiệm vụ bị từ chối",
+                    Message = dto.Approved 
+                        ? $"Tuyệt vời! Nhiệm vụ '{task.Title}' đã được duyệt. Con được cộng {task.Points} điểm." 
+                        : $"Nhiệm vụ '{task.Title}' chưa đạt yêu cầu. Lời nhắn: {dto.RejectionNote}",
+                    Type = "TASK",
+                    RelatedId = task.Id
+                };
+                _db.Notifications.Add(notification);
             }
 
             await _db.SaveChangesAsync();
