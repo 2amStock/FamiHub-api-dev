@@ -1,0 +1,21 @@
+# .NET Core
+bin/
+obj/
+TestResults/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ASP.NET Core
+appsettings.json
+appsettings.*.json
+secrets.json
+
+# Environment Variables
+.env
+.env.*
+
+# Ngrok
+ngrok.exe
+ngrok
