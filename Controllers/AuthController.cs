@@ -95,5 +95,6 @@ namespace FamiHub.API.Controllers
                 return StatusCode(500, new { message = "Lỗi khi gửi mail.", error = ex.Message });
             }
         }
+        //hehehehe
     }
 }

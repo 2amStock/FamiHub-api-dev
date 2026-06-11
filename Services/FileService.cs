@@ -22,8 +22,8 @@ namespace FamiHub.API.Services
             {
                 File = new FileDescription(file.FileName, stream),
                 Folder = "famihub_uploads",
-                // Bạn có thể thêm transformation nếu muốn tối ưu ảnh ngay khi upload
-                // Transformation = new Transformation().Width(500).Height(500).Crop("fill")
+                // Nén ảnh trên Cloudinary để giảm dung lượng lưu trữ và tăng tốc độ tải về
+                Transformation = new Transformation().Quality("auto").FetchFormat("auto").Width(1080).Crop("limit")
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
