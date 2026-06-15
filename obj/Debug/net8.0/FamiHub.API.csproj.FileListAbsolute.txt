@@ -5,8 +5,6 @@ C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\obj\Debug\net8.0\
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\obj\Debug\net8.0\FamiHub.API.csproj.CoreCompileInputs.cache
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\obj\Debug\net8.0\FamiHub.API.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\obj\Debug\net8.0\FamiHub.API.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\appsettings.Development.json
-C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\appsettings.json
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\FamiHub.API.staticwebassets.endpoints.json
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\FamiHub.API.exe
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\FamiHub.API.deps.json
@@ -114,4 +112,5 @@ C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\Newtonsoft.Json.dll
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\PayOS.dll
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\System.Text.Json.dll
-C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\appsettings.example.json
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\appsettings.json
