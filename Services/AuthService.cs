@@ -48,11 +48,25 @@ namespace FamiHub.API.Services
                 _db.Users.Add(user);
                 await _db.SaveChangesAsync();
 
-                await _emailService.SendEmailAsync(
-                    user.Email, 
-                    "FamiHub - Mã xác minh OTP", 
-                    $"Mã xác minh của bạn là: {otp}\nMã này sẽ hết hạn trong 5 phút."
-                );
+                var subject = "Mã xác minh tài khoản FamiHub";
+                var htmlBody = $@"
+                    <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; padding: 24px; border-radius: 12px;'>
+                        <div style='text-align: center; margin-bottom: 24px;'>
+                            <h2 style='color: #FF7EB3; margin: 0;'>FamiHub</h2>
+                        </div>
+                        <p>Chào bạn,</p>
+                        <p>Chúng tôi nhận được yêu cầu xác thực email cho tài khoản FamiHub của bạn. Dưới đây là mã xác minh (OTP):</p>
+                        <div style='text-align: center; margin: 32px 0;'>
+                            <span style='font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #4A90E2; background: #f8f9fa; padding: 16px 32px; border-radius: 8px; border: 1px solid #e2e8f0;'>{otp}</span>
+                        </div>
+                        <p>Mã xác minh này có hiệu lực trong vòng <b>5 phút</b>.</p>
+                        <p style='color: #718096; font-size: 13px; margin-top: 32px; border-top: 1px solid #eaeaea; padding-top: 16px;'>
+                            Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email. Hệ thống sẽ tự động hủy yêu cầu.<br>
+                            Mọi thắc mắc vui lòng liên hệ: <a href='mailto:support@famihub.com' style='color: #4A90E2;'>support@famihub.com</a>.
+                        </p>
+                    </div>";
+
+                await _emailService.SendEmailAsync(user.Email, subject, htmlBody, isHtml: true);
 
                 // Do not generate token yet
                 return new AuthResponseDto { Token = string.Empty, User = MapToDto(user) };
@@ -121,11 +135,25 @@ namespace FamiHub.API.Services
             user.OtpExpiryTime = DateTime.UtcNow.AddMinutes(5);
             await _db.SaveChangesAsync();
 
-            await _emailService.SendEmailAsync(
-                user.Email, 
-                "FamiHub - Mã xác minh OTP (Gửi lại)", 
-                $"Mã xác minh mới của bạn là: {otp}\nMã này sẽ hết hạn trong 5 phút."
-            );
+            var subject = "Mã xác minh tài khoản FamiHub (Gửi lại)";
+            var htmlBody = $@"
+                <div style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; padding: 24px; border-radius: 12px;'>
+                    <div style='text-align: center; margin-bottom: 24px;'>
+                        <h2 style='color: #FF7EB3; margin: 0;'>FamiHub</h2>
+                    </div>
+                    <p>Chào bạn,</p>
+                    <p>Bạn vừa yêu cầu gửi lại mã xác thực email. Dưới đây là mã xác minh (OTP) mới của bạn:</p>
+                    <div style='text-align: center; margin: 32px 0;'>
+                        <span style='font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #4A90E2; background: #f8f9fa; padding: 16px 32px; border-radius: 8px; border: 1px solid #e2e8f0;'>{otp}</span>
+                    </div>
+                    <p>Mã xác minh này có hiệu lực trong vòng <b>5 phút</b>.</p>
+                    <p style='color: #718096; font-size: 13px; margin-top: 32px; border-top: 1px solid #eaeaea; padding-top: 16px;'>
+                        Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email. Hệ thống sẽ tự động hủy yêu cầu.<br>
+                        Mọi thắc mắc vui lòng liên hệ: <a href='mailto:support@famihub.com' style='color: #4A90E2;'>support@famihub.com</a>.
+                    </p>
+                </div>";
+
+            await _emailService.SendEmailAsync(user.Email, subject, htmlBody, isHtml: true);
             
             return true;
         }

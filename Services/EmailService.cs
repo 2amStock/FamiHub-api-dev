@@ -14,7 +14,7 @@ namespace FamiHub.API.Services
             _config = config;
         }
 
-        public async Task SendEmailAsync(string toEmail, string subject, string body)
+        public async Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = false)
         {
             try
             {
@@ -42,7 +42,7 @@ namespace FamiHub.API.Services
                     From = new MailAddress(user, fromName),
                     Subject = subject,
                     Body = body,
-                    IsBodyHtml = false
+                    IsBodyHtml = isHtml
                 };
                 mailMessage.To.Add(toEmail);
 
