@@ -16,11 +16,13 @@ namespace FamiHub.API.Controllers
     {
         private readonly AppDbContext _db;
         private readonly PaymentService _paymentService;
+        private readonly PushNotificationService _pushNotificationService;
 
-        public FamiliesController(AppDbContext db, PaymentService paymentService)
+        public FamiliesController(AppDbContext db, PaymentService paymentService, PushNotificationService pushNotificationService)
         {
             _db = db;
             _paymentService = paymentService;
+            _pushNotificationService = pushNotificationService;
         }
 
         private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -79,6 +81,14 @@ namespace FamiHub.API.Controllers
 
             user.FamilyId = family.Id;
             await _db.SaveChangesAsync();
+
+            await _pushNotificationService.SendFamilyNotificationAsync(
+                family.Id,
+                "Thành viên mới",
+                $"{user.FullName} vừa tham gia gia đình!",
+                excludeUserId: user.Id
+            );
+            await _pushNotificationService.SendFamilyRefreshAsync(family.Id);
 
             return Ok(new { message = "Tham gia gia đình thành công!", familyId = family.Id, familyName = family.Name });
         }

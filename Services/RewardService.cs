@@ -66,6 +66,7 @@ namespace FamiHub.API.Services
 
             _db.Rewards.Add(reward);
             await _db.SaveChangesAsync();
+            await _pushNotificationService.SendFamilyRefreshAsync(parent.FamilyId.Value, excludeUserId: parentUserId);
 
             return await GetRewardByIdAsync(reward.Id, parentUserId);
         }
@@ -90,6 +91,7 @@ namespace FamiHub.API.Services
             reward.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
 
             await _db.SaveChangesAsync();
+            await _pushNotificationService.SendFamilyRefreshAsync(parent.FamilyId.Value, excludeUserId: parentUserId);
 
             return await GetRewardByIdAsync(rewardId, parentUserId);
         }
@@ -110,6 +112,7 @@ namespace FamiHub.API.Services
 
             _db.Rewards.Remove(reward);
             await _db.SaveChangesAsync();
+            await _pushNotificationService.SendFamilyRefreshAsync(parent.FamilyId.Value, excludeUserId: parentUserId);
 
             return true;
         }
