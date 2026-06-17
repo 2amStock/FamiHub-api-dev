@@ -161,6 +161,7 @@ namespace FamiHub.API.Services
             task.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
 
             await _db.SaveChangesAsync();
+            await _pushNotificationService.SendFamilyRefreshAsync(task.FamilyId);
             return await GetTaskByIdAsync(taskId, parentUserId);
         }
 
@@ -172,6 +173,7 @@ namespace FamiHub.API.Services
 
             _db.Tasks.Remove(task);
             await _db.SaveChangesAsync();
+            await _pushNotificationService.SendFamilyRefreshAsync(task.FamilyId);
             return true;
         }
 
