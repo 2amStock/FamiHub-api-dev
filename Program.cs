@@ -108,6 +108,26 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<FamiHub.API.Data.AppDbContext>();
+    var systemRewards = new[]
+    {
+        new FamiHub.API.Models.Reward { Id = -1, FamilyId = null, CreatedByUserId = null, Title = "Xem TV 30 phút", RequiredPoints = 50, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+        new FamiHub.API.Models.Reward { Id = -2, FamilyId = null, CreatedByUserId = null, Title = "Chơi game 1 giờ", RequiredPoints = 100, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+        new FamiHub.API.Models.Reward { Id = -3, FamilyId = null, CreatedByUserId = null, Title = "Mua đồ ăn vặt", RequiredPoints = 150, CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+    };
+
+    foreach (var r in systemRewards)
+    {
+        if (!db.Rewards.Any(x => x.Id == r.Id))
+        {
+            db.Rewards.Add(r);
+        }
+    }
+    db.SaveChanges();
+}
+
 try
 {
     var firebaseJson = builder.Configuration["Firebase:JsonCredential"];
