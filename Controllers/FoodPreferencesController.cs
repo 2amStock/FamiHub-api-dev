@@ -89,7 +89,7 @@ namespace FamiHub.API.Controllers
             if (dto.CuisinePreferences != null)
                 preference.CuisinePreferences = JsonSerializer.Serialize(dto.CuisinePreferences);
                 
-            preference.UpdatedAt = DateTime.UtcNow;
+            preference.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
 
             await _context.SaveChangesAsync();
 

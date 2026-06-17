@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -34,9 +34,9 @@ namespace FamiHub.API.Migrations
                 columns: new[] { "Id", "CreatedAt", "CreatedByUserId", "Description", "FamilyId", "RequiredPoints", "Title", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { -3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, 150, "Mua đồ ăn vặt", null },
-                    { -2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, 100, "Chơi game 1 giờ", null },
-                    { -1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, 50, "Xem TV 30 phút", null }
+                    { -3, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, 150, "Mua d? an v?t", null },
+                    { -2, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, 100, "Choi game 1 gi?", null },
+                    { -1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, null, null, 50, "Xem TV 30 ph�t", null }
                 });
         }
 

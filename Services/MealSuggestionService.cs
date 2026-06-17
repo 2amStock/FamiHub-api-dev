@@ -39,7 +39,7 @@ namespace FamiHub.API.Services
 
             // 2. Lấy lịch sử gợi ý gần đây (7 ngày) để tránh lặp
             var recentSuggestions = await _db.MealSuggestions
-                .Where(m => m.FamilyId == familyId && m.CreatedAt >= DateTime.UtcNow.AddDays(-7))
+                .Where(m => m.FamilyId == familyId && m.CreatedAt >= FamiHub.API.Utils.AppTime.Now.AddDays(-7))
                 .Select(m => m.DishName)
                 .ToListAsync();
 
@@ -82,7 +82,7 @@ namespace FamiHub.API.Services
                     NutritionInfo = dish.NutritionInfo != null
                         ? JsonSerializer.Serialize(dish.NutritionInfo, JsonOptions)
                         : null,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = FamiHub.API.Utils.AppTime.Now
                 };
 
                 _db.MealSuggestions.Add(suggestion);
@@ -211,7 +211,7 @@ namespace FamiHub.API.Services
             if (dto.CuisinePreferences != null)
                 pref.CuisinePreferences = JsonSerializer.Serialize(dto.CuisinePreferences, JsonOptions);
 
-            pref.UpdatedAt = DateTime.UtcNow;
+            pref.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
             await _db.SaveChangesAsync();
 
             return new FoodPreferenceDto

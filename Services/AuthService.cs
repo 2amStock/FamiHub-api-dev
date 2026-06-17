@@ -42,7 +42,7 @@ namespace FamiHub.API.Services
                     Role = role,
                     IsEmailVerified = false,
                     OtpCode = otp,
-                    OtpExpiryTime = DateTime.UtcNow.AddMinutes(5)
+                    OtpExpiryTime = FamiHub.API.Utils.AppTime.Now.AddMinutes(5)
                 };
 
                 _db.Users.Add(user);
@@ -113,7 +113,7 @@ namespace FamiHub.API.Services
 
             if (user.IsEmailVerified) return true;
 
-            if (user.OtpCode == dto.OtpCode && user.OtpExpiryTime > DateTime.UtcNow)
+            if (user.OtpCode == dto.OtpCode && user.OtpExpiryTime > FamiHub.API.Utils.AppTime.Now)
             {
                 user.IsEmailVerified = true;
                 user.OtpCode = null;
@@ -132,7 +132,7 @@ namespace FamiHub.API.Services
 
             var otp = new Random().Next(100000, 999999).ToString();
             user.OtpCode = otp;
-            user.OtpExpiryTime = DateTime.UtcNow.AddMinutes(5);
+            user.OtpExpiryTime = FamiHub.API.Utils.AppTime.Now.AddMinutes(5);
             await _db.SaveChangesAsync();
 
             var subject = "Mã xác minh tài khoản FamiHub (Gửi lại)";
@@ -177,7 +177,7 @@ namespace FamiHub.API.Services
                 issuer: _config["Jwt:Issuer"] ?? "FamiHub",
                 audience: _config["Jwt:Audience"] ?? "FamiHubApp",
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(30),
+                expires: FamiHub.API.Utils.AppTime.Now.AddDays(30),
                 signingCredentials: creds
             );
 

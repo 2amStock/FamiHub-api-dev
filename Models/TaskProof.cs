@@ -26,6 +26,6 @@ namespace FamiHub.API.Models
         [MaxLength(500)]
         public string? Note { get; set; }
 
-        public DateTime SubmittedAt { get; set; } = DateTime.UtcNow;
+        public DateTime SubmittedAt { get; set; } = FamiHub.API.Utils.AppTime.Now;
     }
 }

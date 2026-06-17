@@ -49,7 +49,7 @@ namespace FamiHub.API.Models
 
         public string? RejectionNote { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = FamiHub.API.Utils.AppTime.Now;
 
         public DateTime? UpdatedAt { get; set; }
 

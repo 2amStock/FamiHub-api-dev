@@ -15,7 +15,7 @@ namespace FamiHub.API.Models
         [MaxLength(20)]
         public string InviteCode { get; set; } = string.Empty;
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = FamiHub.API.Utils.AppTime.Now;
 
         public ICollection<User> Members { get; set; } = new List<User>();
         public ICollection<FamilyTask> Tasks { get; set; } = new List<FamilyTask>();
