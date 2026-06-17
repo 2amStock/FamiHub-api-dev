@@ -49,6 +49,9 @@ namespace FamiHub.API.Models
         public int CurrentPlanId { get; set; } = 1;
         public DateTime? SubscriptionExpiryTime { get; set; }
 
+        [MaxLength(500)]
+        public string? FcmToken { get; set; }
+
         public ICollection<FamilyTask> CreatedTasks { get; set; } = new List<FamilyTask>();
         public ICollection<FamilyTask> AssignedTasks { get; set; } = new List<FamilyTask>();
         public ICollection<TaskProof> Proofs { get; set; } = new List<TaskProof>();

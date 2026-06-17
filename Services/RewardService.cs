@@ -8,10 +8,12 @@ namespace FamiHub.API.Services
     public class RewardService
     {
         private readonly AppDbContext _db;
+        private readonly PushNotificationService _pushNotificationService;
 
-        public RewardService(AppDbContext db)
+        public RewardService(AppDbContext db, PushNotificationService pushNotificationService)
         {
             _db = db;
+            _pushNotificationService = pushNotificationService;
         }
 
         // ==================== REWARDS ====================
@@ -174,6 +176,23 @@ namespace FamiHub.API.Services
             };
 
             _db.RewardRedemptions.Add(redemption);
+            
+            // Notify Parents
+            var parents = await _db.Users.Where(u => u.FamilyId == child.FamilyId && u.Role == UserRole.Parent).ToListAsync();
+            foreach (var p in parents)
+            {
+                var notification = new Notification
+                {
+                    UserId = p.Id,
+                    Title = "Yêu cầu đổi thưởng",
+                    Message = $"Bé {child.Name} muốn đổi thưởng: {reward.Title}. Hãy vào xem và duyệt nhé!",
+                    Type = "REWARD",
+                    RelatedId = redemption.Id
+                };
+                _db.Notifications.Add(notification);
+                await _pushNotificationService.SendNotificationAsync(p.Id, notification.Title, notification.Message, p.FcmToken);
+            }
+
             await _db.SaveChangesAsync();
 
             return await GetRedemptionByIdAsync(redemption.Id, childUserId);
@@ -202,7 +221,25 @@ namespace FamiHub.API.Services
                 redemption.Child.Points += redemption.Reward.RequiredPoints;
             }
 
+            var notification = new Notification
+            {
+                UserId = redemption.ChildUserId,
+                Title = dto.Approved ? "Đổi thưởng thành công!" : "Đổi thưởng thất bại",
+                Message = dto.Approved 
+                    ? $"Tuyệt vời! Yêu cầu đổi thưởng '{redemption.Reward.Title}' đã được duyệt." 
+                    : $"Yêu cầu đổi thưởng '{redemption.Reward.Title}' bị từ chối. Lời nhắn: {dto.ParentNote}",
+                Type = "REWARD",
+                RelatedId = redemption.Id
+            };
+            _db.Notifications.Add(notification);
+
             await _db.SaveChangesAsync();
+            
+            var childUser = await _db.Users.FindAsync(redemption.ChildUserId);
+            if (childUser != null)
+            {
+                await _pushNotificationService.SendNotificationAsync(childUser.Id, notification.Title, notification.Message, childUser.FcmToken);
+            }
 
             return await GetRedemptionByIdAsync(redemptionId, parentUserId);
         }

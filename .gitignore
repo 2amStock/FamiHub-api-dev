@@ -19,3 +19,6 @@ secrets.json
 # Ngrok
 ngrok.exe
 ngrok
+
+# Firebase
+firebase-adminsdk.json
