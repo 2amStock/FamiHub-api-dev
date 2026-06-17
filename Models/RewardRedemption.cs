@@ -33,7 +33,7 @@ namespace FamiHub.API.Models
         [MaxLength(500)]
         public string? ParentNote { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = FamiHub.API.Utils.AppTime.Now;
 
         public DateTime? UpdatedAt { get; set; }
     }

@@ -28,7 +28,7 @@ namespace FamiHub.API.Services
                 .Include(t => t.CreatedBy)
                 .Include(t => t.Proof).ThenInclude(p => p!.Child)
                 .Where(t => t.FamilyId == user.FamilyId)
-                .Where(t => !(t.Status == Models.TaskStatus.Pending && t.DueDate != null && t.DueDate < DateTime.UtcNow));
+                .Where(t => !(t.Status == Models.TaskStatus.Pending && t.DueDate != null && t.DueDate < FamiHub.API.Utils.AppTime.Now));
 
             // Child can only see their own tasks
             if (user.Role == UserRole.Child)
@@ -61,7 +61,7 @@ namespace FamiHub.API.Services
             // Check limits
             var currentPlan = await _paymentService.GetCurrentPlanAsync(parentUserId);
             var todayTasks = await _db.Tasks
-                .CountAsync(t => t.FamilyId == parent.FamilyId && t.CreatedAt.Date == DateTime.UtcNow.Date);
+                .CountAsync(t => t.FamilyId == parent.FamilyId && t.CreatedAt.Date == FamiHub.API.Utils.AppTime.Now.Date);
             if (todayTasks >= currentPlan.MaxTasksPerDay)
             {
                 throw new Exception($"LIMIT_EXCEEDED:{currentPlan.MaxTasksPerDay}");
@@ -158,7 +158,7 @@ namespace FamiHub.API.Services
             if (dto.AssignedToUserId.HasValue) task.AssignedToUserId = dto.AssignedToUserId;
             if (dto.DueDate.HasValue) task.DueDate = dto.DueDate;
             if (dto.Points.HasValue) task.Points = dto.Points.Value;
-            task.UpdatedAt = DateTime.UtcNow;
+            task.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
 
             await _db.SaveChangesAsync();
             return await GetTaskByIdAsync(taskId, parentUserId);
@@ -194,11 +194,11 @@ namespace FamiHub.API.Services
                 ChildUserId = childUserId,
                 PhotoUrl = photoUrl,
                 Note = note,
-                SubmittedAt = DateTime.UtcNow
+                SubmittedAt = FamiHub.API.Utils.AppTime.Now
             };
 
             task.Status = Models.TaskStatus.Submitted;
-            task.UpdatedAt = DateTime.UtcNow;
+            task.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
             _db.TaskProofs.Add(proof);
 
             var notification = new Notification
@@ -234,7 +234,7 @@ namespace FamiHub.API.Services
 
             task.Status = dto.Approved ? Models.TaskStatus.Approved : Models.TaskStatus.Rejected;
             task.RejectionNote = dto.Approved ? null : dto.RejectionNote;
-            task.UpdatedAt = DateTime.UtcNow;
+            task.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
 
             if (dto.Approved && task.AssignedTo != null)
             {

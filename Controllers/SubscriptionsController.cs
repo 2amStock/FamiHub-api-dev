@@ -73,8 +73,8 @@ namespace FamiHub.API.Controllers
                         HasStudyTracking = freePlan.HasStudyTracking,
                         HasAchievement = freePlan.HasAchievement
                     },
-                    StartDate = DateTime.UtcNow,
-                    EndDate = DateTime.UtcNow.AddYears(100),
+                    StartDate = FamiHub.API.Utils.AppTime.Now,
+                    EndDate = FamiHub.API.Utils.AppTime.Now.AddYears(100),
                     Status = "ACTIVE"
                 });
             }

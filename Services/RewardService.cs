@@ -61,7 +61,7 @@ namespace FamiHub.API.Services
                 Title = dto.Title,
                 Description = dto.Description,
                 RequiredPoints = dto.RequiredPoints,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = FamiHub.API.Utils.AppTime.Now
             };
 
             _db.Rewards.Add(reward);
@@ -87,7 +87,7 @@ namespace FamiHub.API.Services
             if (dto.Title != null) reward.Title = dto.Title;
             if (dto.Description != null) reward.Description = dto.Description;
             if (dto.RequiredPoints.HasValue) reward.RequiredPoints = dto.RequiredPoints.Value;
-            reward.UpdatedAt = DateTime.UtcNow;
+            reward.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
 
             await _db.SaveChangesAsync();
 
@@ -172,7 +172,7 @@ namespace FamiHub.API.Services
                 RewardId = rewardId,
                 ChildUserId = childUserId,
                 Status = RedemptionStatus.Pending,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = FamiHub.API.Utils.AppTime.Now
             };
 
             _db.RewardRedemptions.Add(redemption);
@@ -213,7 +213,7 @@ namespace FamiHub.API.Services
 
             redemption.Status = dto.Approved ? RedemptionStatus.Approved : RedemptionStatus.Rejected;
             redemption.ParentNote = dto.ParentNote;
-            redemption.UpdatedAt = DateTime.UtcNow;
+            redemption.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
 
             // If rejected, refund points to child
             if (!dto.Approved && redemption.Child != null)

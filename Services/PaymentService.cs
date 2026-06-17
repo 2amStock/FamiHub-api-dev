@@ -85,14 +85,14 @@ namespace FamiHub.API.Services
                     if (transaction != null && transaction.Status == "PENDING")
                     {
                         transaction.Status = "SUCCESS";
-                        transaction.CompletedAt = DateTime.UtcNow;
+                        transaction.CompletedAt = FamiHub.API.Utils.AppTime.Now;
 
                         var userSub = new UserSubscription
                         {
                             UserId = transaction.UserId,
                             SubscriptionPlanId = transaction.SubscriptionPlanId,
-                            StartDate = DateTime.UtcNow,
-                            EndDate = DateTime.UtcNow.AddMonths(1),
+                            StartDate = FamiHub.API.Utils.AppTime.Now,
+                            EndDate = FamiHub.API.Utils.AppTime.Now.AddMonths(1),
                             Status = "ACTIVE",
                             PayOSOrderCode = webhookData.OrderCode.ToString(),
                             TransactionId = webhookData.Reference ?? ""
@@ -124,7 +124,7 @@ namespace FamiHub.API.Services
         public async Task<bool> IsUserPremiumAsync(int userId)
         {
             var activeSub = await _db.UserSubscriptions
-                .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "ACTIVE" && s.EndDate > DateTime.UtcNow);
+                .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "ACTIVE" && s.EndDate > FamiHub.API.Utils.AppTime.Now);
             return activeSub != null;
         }
 
@@ -132,7 +132,7 @@ namespace FamiHub.API.Services
         {
             var activeSub = await _db.UserSubscriptions
                 .Include(s => s.Plan)
-                .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "ACTIVE" && s.EndDate > DateTime.UtcNow);
+                .FirstOrDefaultAsync(s => s.UserId == userId && s.Status == "ACTIVE" && s.EndDate > FamiHub.API.Utils.AppTime.Now);
 
             if (activeSub != null && activeSub.Plan != null)
             {

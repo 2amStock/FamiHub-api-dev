@@ -26,7 +26,7 @@ namespace FamiHub.API.Models
         [MaxLength(20)]
         public string Status { get; set; } = "PENDING"; // PENDING, SUCCESS, FAILED
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = FamiHub.API.Utils.AppTime.Now;
         public DateTime? CompletedAt { get; set; }
     }
 }

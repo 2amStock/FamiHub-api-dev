@@ -22,6 +22,6 @@ namespace FamiHub.API.Models
 
         public string? CuisinePreferences { get; set; } // JSON array: ["Việt Nam", "Hàn Quốc"]
 
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = FamiHub.API.Utils.AppTime.Now;
     }
 }
