@@ -110,9 +110,21 @@ var app = builder.Build();
 
 try
 {
+    var firebaseJson = builder.Configuration["Firebase:JsonCredential"];
+    GoogleCredential credential;
+    
+    if (!string.IsNullOrEmpty(firebaseJson))
+    {
+        credential = GoogleCredential.FromJson(firebaseJson);
+    }
+    else
+    {
+        credential = GoogleCredential.FromFile("firebase-adminsdk.json");
+    }
+
     FirebaseApp.Create(new AppOptions
     {
-        Credential = GoogleCredential.FromFile("firebase-adminsdk.json")
+        Credential = credential
     });
     Console.WriteLine("Firebase Admin initialized.");
 }
