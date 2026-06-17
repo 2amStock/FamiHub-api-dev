@@ -85,7 +85,7 @@ namespace FamiHub.API.Controllers
             await _pushNotificationService.SendFamilyNotificationAsync(
                 family.Id,
                 "Thành viên mới",
-                $"{user.FullName} vừa tham gia gia đình!",
+                $"{user.Name} vừa tham gia gia đình!",
                 excludeUserId: user.Id
             );
             await _pushNotificationService.SendFamilyRefreshAsync(family.Id);
