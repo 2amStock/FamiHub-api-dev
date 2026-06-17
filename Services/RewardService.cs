@@ -74,7 +74,7 @@ namespace FamiHub.API.Services
         public async Task<RewardDto?> UpdateRewardAsync(int rewardId, UpdateRewardDto dto, int parentUserId)
         {
             var parent = await _db.Users.FindAsync(parentUserId);
-            if (parent == null || parent.Role != UserRole.Parent) return null;
+            if (parent == null || parent.Role != UserRole.Parent || parent.FamilyId == null) return null;
 
             if (parent.CurrentPlanId == 1)
                 throw new InvalidOperationException("Gói Miễn Phí không hỗ trợ sửa phần thưởng. Vui lòng nâng cấp gói để sử dụng tính năng này.");
@@ -99,7 +99,7 @@ namespace FamiHub.API.Services
         public async Task<bool> DeleteRewardAsync(int rewardId, int parentUserId)
         {
             var parent = await _db.Users.FindAsync(parentUserId);
-            if (parent == null || parent.Role != UserRole.Parent) return false;
+            if (parent == null || parent.Role != UserRole.Parent || parent.FamilyId == null) return false;
 
             if (parent.CurrentPlanId == 1)
                 throw new InvalidOperationException("Gói Miễn Phí không hỗ trợ xóa phần thưởng. Vui lòng nâng cấp gói để sử dụng tính năng này.");
