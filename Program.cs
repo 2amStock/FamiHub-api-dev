@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using FamiHub.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +41,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"] ?? "FamiHubApp",
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
+        opt.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notificationHub"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -52,6 +68,7 @@ builder.Services.AddScoped<MealSuggestionService>();
 builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<RewardService>();
 builder.Services.AddScoped<FamilyEventService>();
+builder.Services.AddScoped<PushNotificationService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 
@@ -63,6 +80,7 @@ builder.Services.AddCors(opt =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -90,6 +108,31 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+try
+{
+    var firebaseJson = builder.Configuration["Firebase:JsonCredential"];
+    GoogleCredential credential;
+    
+    if (!string.IsNullOrEmpty(firebaseJson))
+    {
+        credential = GoogleCredential.FromJson(firebaseJson);
+    }
+    else
+    {
+        credential = GoogleCredential.FromFile("firebase-adminsdk.json");
+    }
+
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = credential
+    });
+    Console.WriteLine("Firebase Admin initialized.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine("Firebase Init Error: " + ex.Message);
+}
+
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -106,5 +149,6 @@ app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();

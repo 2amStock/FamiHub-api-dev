@@ -114,3 +114,13 @@ C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\System.Text.Json.dll
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\appsettings.example.json
 C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\appsettings.json
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\famihub-27162-firebase-adminsdk-fbsvc-bb80b9490b.json
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\firebase-adminsdk.json
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\FirebaseAdmin.dll
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\Google.Api.Gax.dll
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\Google.Api.Gax.Rest.dll
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\Google.Apis.dll
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\Google.Apis.Auth.dll
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\Google.Apis.Core.dll
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\System.Management.dll
+C:\Users\he181\.gemini\antigravity\scratch\FamiHub\FamiHub.API\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Management.dll

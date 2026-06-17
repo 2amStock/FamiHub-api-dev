@@ -95,6 +95,18 @@ namespace FamiHub.API.Controllers
                 return StatusCode(500, new { message = "Lỗi khi gửi mail.", error = ex.Message });
             }
         }
-        //hehehehe
+        [Authorize]
+        [HttpPut("fcm-token")]
+        public async Task<IActionResult> UpdateFcmToken([FromBody] UpdateFcmTokenDto dto)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            await _authService.UpdateFcmTokenAsync(userId, dto.Token);
+            return Ok(new { message = "Cập nhật FCM token thành công." });
+        }
+    }
+
+    public class UpdateFcmTokenDto
+    {
+        public string Token { get; set; } = "";
     }
 }

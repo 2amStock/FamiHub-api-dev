@@ -192,6 +192,16 @@ namespace FamiHub.API.Services
             return user == null ? null : MapToDto(user);
         }
 
+        public async Task UpdateFcmTokenAsync(int userId, string token)
+        {
+            var user = await _db.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.FcmToken = token;
+                await _db.SaveChangesAsync();
+            }
+        }
+
         public static UserDto MapToDto(User user) => new()
         {
             Id = user.Id,

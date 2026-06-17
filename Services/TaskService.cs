@@ -9,11 +9,13 @@ namespace FamiHub.API.Services
     {
         private readonly AppDbContext _db;
         private readonly PaymentService _paymentService;
+        private readonly PushNotificationService _pushNotificationService;
 
-        public TaskService(AppDbContext db, PaymentService paymentService)
+        public TaskService(AppDbContext db, PaymentService paymentService, PushNotificationService pushNotificationService)
         {
             _db = db;
             _paymentService = paymentService;
+            _pushNotificationService = pushNotificationService;
         }
 
         public async Task<List<TaskDto>> GetTasksAsync(int userId)
@@ -25,7 +27,8 @@ namespace FamiHub.API.Services
                 .Include(t => t.AssignedTo)
                 .Include(t => t.CreatedBy)
                 .Include(t => t.Proof).ThenInclude(p => p!.Child)
-                .Where(t => t.FamilyId == user.FamilyId);
+                .Where(t => t.FamilyId == user.FamilyId)
+                .Where(t => !(t.Status == Models.TaskStatus.Pending && t.DueDate != null && t.DueDate < DateTime.UtcNow));
 
             // Child can only see their own tasks
             if (user.Role == UserRole.Child)
@@ -91,6 +94,13 @@ namespace FamiHub.API.Services
                 _db.Notifications.Add(notification);
 
                 await _db.SaveChangesAsync();
+                
+                var childUser = await _db.Users.FindAsync(dto.AssignedToUserId.Value);
+                if (childUser != null)
+                {
+                    await _pushNotificationService.SendNotificationAsync(childUser.Id, notification.Title, notification.Message, childUser.FcmToken);
+                }
+
                 return await GetTaskByIdAsync(task.Id, parentUserId);
             }
             else
@@ -127,6 +137,10 @@ namespace FamiHub.API.Services
                         Type = "TASK"
                     };
                     _db.Notifications.Add(notification);
+                    
+                    // We can't await SendNotification inside the foreach before SaveChanges if we don't want to slow it down, 
+                    // but it's fine for small numbers
+                    await _pushNotificationService.SendNotificationAsync(child.Id, notification.Title, notification.Message, child.FcmToken);
                 }
 
                 await _db.SaveChangesAsync();
@@ -199,6 +213,12 @@ namespace FamiHub.API.Services
 
             await _db.SaveChangesAsync();
 
+            var parentUser = await _db.Users.FindAsync(task.CreatedByUserId);
+            if (parentUser != null)
+            {
+                await _pushNotificationService.SendNotificationAsync(parentUser.Id, notification.Title, notification.Message, parentUser.FcmToken);
+            }
+
             return await GetTaskByIdAsync(taskId, childUserId);
         }
 
@@ -234,6 +254,12 @@ namespace FamiHub.API.Services
                     RelatedId = task.Id
                 };
                 _db.Notifications.Add(notification);
+                
+                var childUser = await _db.Users.FindAsync(task.AssignedToUserId.Value);
+                if (childUser != null)
+                {
+                    await _pushNotificationService.SendNotificationAsync(childUser.Id, notification.Title, notification.Message, childUser.FcmToken);
+                }
             }
 
             await _db.SaveChangesAsync();
