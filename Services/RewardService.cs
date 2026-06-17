@@ -122,7 +122,7 @@ namespace FamiHub.API.Services
             IQueryable<RewardRedemption> query = _db.RewardRedemptions
                 .Include(rr => rr.Reward)
                 .Include(rr => rr.Child)
-                .Where(rr => rr.Reward != null && (rr.Reward.FamilyId == user.FamilyId || rr.Reward.FamilyId == null));
+                .Where(rr => rr.Child != null && rr.Child.FamilyId == user.FamilyId);
 
             if (user.Role == UserRole.Child)
             {
