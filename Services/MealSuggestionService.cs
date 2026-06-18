@@ -328,7 +328,18 @@ TRẢ VỀ ĐÚNG JSON FORMAT SAU (không thêm markdown, chỉ JSON thuần):
         {
             try
             {
-                using var doc = JsonDocument.Parse(aiResponse);
+                var cleanJson = aiResponse.Trim();
+                if (cleanJson.StartsWith("```json"))
+                {
+                    cleanJson = cleanJson.Substring(7);
+                }
+                if (cleanJson.EndsWith("```"))
+                {
+                    cleanJson = cleanJson.Substring(0, cleanJson.Length - 3);
+                }
+                cleanJson = cleanJson.Trim();
+
+                using var doc = JsonDocument.Parse(cleanJson);
                 var root = doc.RootElement;
 
                 if (!root.TryGetProperty("dishes", out var dishesArray))
