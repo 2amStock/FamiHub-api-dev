@@ -261,7 +261,7 @@ namespace FamiHub.API.Controllers
                 });
 
                 // Notify clients
-                await hubContext.Groups.ClientGroup($"Family_{familyId.Value}").SendAsync("ShoppingItemAdded", addedItems.Last());
+                await hubContext.Clients.Group($"Family_{familyId.Value}").SendAsync("ShoppingItemAdded", addedItems.Last());
             }
 
             activeList.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
