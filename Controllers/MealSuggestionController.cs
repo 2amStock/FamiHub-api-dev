@@ -182,13 +182,10 @@ namespace FamiHub.API.Controllers
             var meal = await db.MealSuggestions.FirstOrDefaultAsync(m => m.Id == id && m.FamilyId == familyId.Value);
             if (meal == null) return NotFound(new { message = "Không tìm thấy món ăn." });
 
-            // Parse ingredients (assuming JSON array of objects or strings)
-            // Example: [{"Name": "Thịt bò", "Amount": "500g"}] or just simple array
-            List<string> ingredientsList = new List<string>();
+            // Parse ingredients from AI JSON: [{name, amount, unit}, ...]
+            var parsedIngredients = new List<(string Name, double Quantity, string Unit)>();
             try
             {
-                // Attempt to parse. For simplicity, if it's a JSON string array.
-                // Depending on the AI format, we might need a robust parser.
                 var parsed = JsonSerializer.Deserialize<List<JsonElement>>(meal.Ingredients);
                 if (parsed != null)
                 {
@@ -196,21 +193,42 @@ namespace FamiHub.API.Controllers
                     {
                         if (item.ValueKind == JsonValueKind.String)
                         {
-                            ingredientsList.Add(item.GetString()!);
+                            parsedIngredients.Add((item.GetString()!, 1, ""));
                         }
                         else if (item.ValueKind == JsonValueKind.Object)
                         {
-                            // If it's an object like { "name": "Thịt bò", "quantity": "500g" }
-                            var name = item.TryGetProperty("name", out var n) ? n.GetString() : "";
-                            var qty = item.TryGetProperty("quantity", out var q) ? q.GetString() : "";
-                            ingredientsList.Add($"{name} {qty}".Trim());
+                            var name = item.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
+                            var amountStr = item.TryGetProperty("amount", out var a) ? a.GetString() ?? "1" : "1";
+                            var unit = item.TryGetProperty("unit", out var u) ? u.GetString() ?? "" : "";
+
+                            // Parse numeric value from amount string (e.g., "500" or "2.5")
+                            double quantity = 1;
+                            // Try to extract number from the amount string
+                            var numStr = System.Text.RegularExpressions.Regex.Match(amountStr, @"[\d.,]+").Value;
+                            if (!string.IsNullOrEmpty(numStr))
+                            {
+                                numStr = numStr.Replace(",", ".");
+                                double.TryParse(numStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out quantity);
+                                if (quantity <= 0) quantity = 1;
+                            }
+
+                            // If unit is empty but amount has text suffix, extract it
+                            if (string.IsNullOrWhiteSpace(unit))
+                            {
+                                var unitFromAmount = System.Text.RegularExpressions.Regex.Replace(amountStr, @"[\d.,\s]+", "").Trim();
+                                if (!string.IsNullOrEmpty(unitFromAmount))
+                                    unit = unitFromAmount;
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(name))
+                                parsedIngredients.Add((name.Trim(), quantity, unit.Trim()));
                         }
                     }
                 }
             }
             catch
             {
-                ingredientsList.Add(meal.Ingredients); // Fallback
+                parsedIngredients.Add((meal.Ingredients, 1, ""));
             }
 
             // Get or create active shopping list
@@ -230,38 +248,72 @@ namespace FamiHub.API.Controllers
                 await db.SaveChangesAsync();
             }
 
-            var addedItems = new List<ShoppingItemDto>();
+            var addedOrUpdatedItems = new List<ShoppingItemDto>();
 
-            foreach (var ingName in ingredientsList)
+            foreach (var ing in parsedIngredients)
             {
-                if (string.IsNullOrWhiteSpace(ingName)) continue;
+                if (string.IsNullOrWhiteSpace(ing.Name)) continue;
 
-                var newItem = new ShoppingItem
+                // Check if an item with the same name and unit already exists in the active list
+                var existingItem = activeList.Items.FirstOrDefault(i =>
+                    i.Name.Equals(ing.Name, StringComparison.OrdinalIgnoreCase) &&
+                    (i.Unit ?? "").Equals(ing.Unit, StringComparison.OrdinalIgnoreCase) &&
+                    !i.IsBought);
+
+                if (existingItem != null)
                 {
-                    ListId = activeList.Id,
-                    Name = ingName,
-                    Quantity = 1,
-                    Unit = "",
-                    CreatedByUserId = userId
-                };
-                db.ShoppingItems.Add(newItem);
-                await db.SaveChangesAsync();
+                    // Accumulate quantity
+                    existingItem.Quantity += ing.Quantity;
+                    await db.SaveChangesAsync();
 
-                addedItems.Add(new ShoppingItemDto
+                    var dto = new ShoppingItemDto
+                    {
+                        Id = existingItem.Id,
+                        ListId = existingItem.ListId,
+                        Name = existingItem.Name,
+                        Quantity = existingItem.Quantity,
+                        Unit = existingItem.Unit,
+                        IsBought = existingItem.IsBought,
+                        BuyerId = existingItem.BuyerId,
+                        CreatedByUserId = existingItem.CreatedByUserId,
+                        CreatedAt = existingItem.CreatedAt
+                    };
+                    addedOrUpdatedItems.Add(dto);
+
+                    // Notify as updated (not added)
+                    await hubContext.Clients.Group($"Family_{familyId.Value}").SendAsync("ShoppingItemUpdated", dto);
+                }
+                else
                 {
-                    Id = newItem.Id,
-                    ListId = newItem.ListId,
-                    Name = newItem.Name,
-                    Quantity = newItem.Quantity,
-                    Unit = newItem.Unit,
-                    IsBought = newItem.IsBought,
-                    BuyerId = newItem.BuyerId,
-                    CreatedByUserId = newItem.CreatedByUserId,
-                    CreatedAt = newItem.CreatedAt
-                });
+                    var newItem = new ShoppingItem
+                    {
+                        ListId = activeList.Id,
+                        Name = ing.Name,
+                        Quantity = ing.Quantity,
+                        Unit = ing.Unit,
+                        CreatedByUserId = userId
+                    };
+                    db.ShoppingItems.Add(newItem);
+                    await db.SaveChangesAsync();
+                    activeList.Items.Add(newItem);
 
-                // Notify clients
-                await hubContext.Clients.Group($"Family_{familyId.Value}").SendAsync("ShoppingItemAdded", addedItems.Last());
+                    var dto = new ShoppingItemDto
+                    {
+                        Id = newItem.Id,
+                        ListId = newItem.ListId,
+                        Name = newItem.Name,
+                        Quantity = newItem.Quantity,
+                        Unit = newItem.Unit,
+                        IsBought = newItem.IsBought,
+                        BuyerId = newItem.BuyerId,
+                        CreatedByUserId = newItem.CreatedByUserId,
+                        CreatedAt = newItem.CreatedAt
+                    };
+                    addedOrUpdatedItems.Add(dto);
+
+                    // Notify as added
+                    await hubContext.Clients.Group($"Family_{familyId.Value}").SendAsync("ShoppingItemAdded", dto);
+                }
             }
 
             activeList.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
