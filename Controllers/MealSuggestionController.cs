@@ -319,7 +319,7 @@ namespace FamiHub.API.Controllers
             activeList.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
             await db.SaveChangesAsync();
 
-            return Ok(new { message = $"Đã thêm {addedItems.Count} nguyên liệu vào Shopping List.", items = addedItems });
+            return Ok(new { message = $"Đã thêm {addedOrUpdatedItems.Count} nguyên liệu vào Shopping List.", items = addedOrUpdatedItems });
         }
 
         // ========== Helpers ==========
