@@ -170,5 +170,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<ShoppingHub>("/shoppingHub");
 
 app.Run();

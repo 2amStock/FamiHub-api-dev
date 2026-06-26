@@ -20,6 +20,8 @@ namespace FamiHub.API.Data
         public DbSet<Reward> Rewards { get; set; }
         public DbSet<RewardRedemption> RewardRedemptions { get; set; }
         public DbSet<FamilyEvent> FamilyEvents { get; set; }
+        public DbSet<ShoppingList> ShoppingLists { get; set; }
+        public DbSet<ShoppingItem> ShoppingItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -39,6 +41,8 @@ namespace FamiHub.API.Data
             modelBuilder.Entity<Reward>().ToTable("rewards");
             modelBuilder.Entity<RewardRedemption>().ToTable("rewardredemptions");
             modelBuilder.Entity<FamilyEvent>().ToTable("familyevents");
+            modelBuilder.Entity<ShoppingList>().ToTable("shoppinglists");
+            modelBuilder.Entity<ShoppingItem>().ToTable("shoppingitems");
 
             // Family
             modelBuilder.Entity<Family>()
@@ -173,6 +177,32 @@ namespace FamiHub.API.Data
                 .HasOne(e => e.CreatedBy)
                 .WithMany()
                 .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ShoppingList
+            modelBuilder.Entity<ShoppingList>()
+                .HasOne(s => s.Family)
+                .WithMany()
+                .HasForeignKey(s => s.FamilyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ShoppingItem
+            modelBuilder.Entity<ShoppingItem>()
+                .HasOne(i => i.ShoppingList)
+                .WithMany(l => l.Items)
+                .HasForeignKey(i => i.ListId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ShoppingItem>()
+                .HasOne(i => i.Buyer)
+                .WithMany()
+                .HasForeignKey(i => i.BuyerId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ShoppingItem>()
+                .HasOne(i => i.CreatedBy)
+                .WithMany()
+                .HasForeignKey(i => i.CreatedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
