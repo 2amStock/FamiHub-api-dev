@@ -64,6 +64,29 @@ namespace FamiHub.API.Controllers
             }
         }
 
+        [HttpPost("suggest")]
+        public async Task<IActionResult> SuggestReward([FromBody] SuggestRewardDto dto)
+        {
+            if (GetRole() != "Child")
+                return Forbid();
+
+            if (string.IsNullOrWhiteSpace(dto.Title))
+                return BadRequest(new { message = "Tiêu đề phần thưởng không được trống." });
+
+            try
+            {
+                var reward = await _rewardService.SuggestRewardAsync(dto, GetUserId());
+                if (reward == null)
+                    return BadRequest(new { message = "Không thể tạo đề xuất. Hãy đảm bảo bạn đã có gia đình." });
+
+                return CreatedAtAction(nameof(GetReward), new { id = reward.Id }, reward);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateReward(int id, [FromBody] UpdateRewardDto dto)
         {

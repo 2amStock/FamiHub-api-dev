@@ -213,8 +213,15 @@ namespace FamiHub.API.DTOs
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int RequiredPoints { get; set; }
+        public bool IsSuggested { get; set; }
         public DateTime CreatedAt { get; set; }
         public UserDto? CreatedBy { get; set; }
+    }
+
+    public class SuggestRewardDto
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
     }
 
     public class RewardRedemptionDto
