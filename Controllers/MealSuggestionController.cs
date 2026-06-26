@@ -1,3 +1,8 @@
+using FamiHub.API.Models;
+using FamiHub.API.Hubs;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using System.Security.Claims;
 using FamiHub.API.DTOs;
 using FamiHub.API.Services;
@@ -150,6 +155,119 @@ namespace FamiHub.API.Controllers
                 return NotFound(new { message = "Không tìm thấy thông tin người dùng." });
 
             return Ok(new { message = "Đã cập nhật sở thích ẩm thực!", preferences = result });
+        }
+
+        /// <summary>
+        /// Thêm nguyên liệu của món ăn vào Shopping List
+        /// </summary>
+        [HttpPost("{id}/add-to-shopping-list")]
+        public async Task<IActionResult> AddToShoppingList(int id)
+        {
+            var userId = GetUserId();
+            var familyId = GetFamilyId();
+            if (familyId == null) return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
+
+            var db = HttpContext.RequestServices.GetRequiredService<FamiHub.API.Data.AppDbContext>();
+            var hubContext = HttpContext.RequestServices.GetRequiredService<IHubContext<ShoppingHub>>();
+
+            // Check subscription
+            var user = await db.Users.FindAsync(userId);
+            if (user == null) return Unauthorized();
+            var currentPlan = await db.SubscriptionPlans.FindAsync(user.CurrentPlanId);
+            if (currentPlan == null || !currentPlan.HasShoppingList)
+            {
+                return StatusCode(403, new { message = "Gói cước hiện tại của bạn không hỗ trợ Shopping List." });
+            }
+
+            var meal = await db.MealSuggestions.FirstOrDefaultAsync(m => m.Id == id && m.FamilyId == familyId.Value);
+            if (meal == null) return NotFound(new { message = "Không tìm thấy món ăn." });
+
+            // Parse ingredients (assuming JSON array of objects or strings)
+            // Example: [{"Name": "Thịt bò", "Amount": "500g"}] or just simple array
+            List<string> ingredientsList = new List<string>();
+            try
+            {
+                // Attempt to parse. For simplicity, if it's a JSON string array.
+                // Depending on the AI format, we might need a robust parser.
+                var parsed = JsonSerializer.Deserialize<List<JsonElement>>(meal.Ingredients);
+                if (parsed != null)
+                {
+                    foreach (var item in parsed)
+                    {
+                        if (item.ValueKind == JsonValueKind.String)
+                        {
+                            ingredientsList.Add(item.GetString()!);
+                        }
+                        else if (item.ValueKind == JsonValueKind.Object)
+                        {
+                            // If it's an object like { "name": "Thịt bò", "quantity": "500g" }
+                            var name = item.TryGetProperty("name", out var n) ? n.GetString() : "";
+                            var qty = item.TryGetProperty("quantity", out var q) ? q.GetString() : "";
+                            ingredientsList.Add($"{name} {qty}".Trim());
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                ingredientsList.Add(meal.Ingredients); // Fallback
+            }
+
+            // Get or create active shopping list
+            var activeList = await db.ShoppingLists
+                .Include(l => l.Items)
+                .FirstOrDefaultAsync(l => l.FamilyId == familyId.Value && l.Status == "active");
+
+            if (activeList == null)
+            {
+                activeList = new ShoppingList
+                {
+                    FamilyId = familyId.Value,
+                    Name = "Danh sách tuần này",
+                    Status = "active"
+                };
+                db.ShoppingLists.Add(activeList);
+                await db.SaveChangesAsync();
+            }
+
+            var addedItems = new List<ShoppingItemDto>();
+
+            foreach (var ingName in ingredientsList)
+            {
+                if (string.IsNullOrWhiteSpace(ingName)) continue;
+
+                var newItem = new ShoppingItem
+                {
+                    ListId = activeList.Id,
+                    Name = ingName,
+                    Quantity = 1,
+                    Unit = "",
+                    CreatedByUserId = userId
+                };
+                db.ShoppingItems.Add(newItem);
+                await db.SaveChangesAsync();
+
+                addedItems.Add(new ShoppingItemDto
+                {
+                    Id = newItem.Id,
+                    ListId = newItem.ListId,
+                    Name = newItem.Name,
+                    Quantity = newItem.Quantity,
+                    Unit = newItem.Unit,
+                    IsBought = newItem.IsBought,
+                    BuyerId = newItem.BuyerId,
+                    CreatedByUserId = newItem.CreatedByUserId,
+                    CreatedAt = newItem.CreatedAt
+                });
+
+                // Notify clients
+                await hubContext.Groups.ClientGroup($"Family_{familyId.Value}").SendAsync("ShoppingItemAdded", addedItems.Last());
+            }
+
+            activeList.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
+            await db.SaveChangesAsync();
+
+            return Ok(new { message = $"Đã thêm {addedItems.Count} nguyên liệu vào Shopping List.", items = addedItems });
         }
 
         // ========== Helpers ==========
