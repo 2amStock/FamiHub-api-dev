@@ -87,13 +87,64 @@ namespace FamiHub.API.Services
 
             if (dto.Title != null) reward.Title = dto.Title;
             if (dto.Description != null) reward.Description = dto.Description;
-            if (dto.RequiredPoints.HasValue) reward.RequiredPoints = dto.RequiredPoints.Value;
+            if (dto.RequiredPoints.HasValue) 
+            {
+                reward.RequiredPoints = dto.RequiredPoints.Value;
+                // Nếu phần thưởng do con đề xuất được cha mẹ thiết lập điểm thì nó không còn là đề xuất nữa
+                if (reward.IsSuggested) 
+                {
+                    reward.IsSuggested = false;
+                }
+            }
             reward.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
 
             await _db.SaveChangesAsync();
             await _pushNotificationService.SendFamilyRefreshAsync(parent.FamilyId.Value, excludeUserId: parentUserId);
 
             return await GetRewardByIdAsync(rewardId, parentUserId);
+        }
+
+        public async Task<RewardDto?> SuggestRewardAsync(SuggestRewardDto dto, int childUserId)
+        {
+            var child = await _db.Users.FindAsync(childUserId);
+            if (child == null || child.FamilyId == null || child.Role != UserRole.Child) return null;
+
+            // Kiểm tra xem gia đình có tài khoản Parent nào đang dùng Premium không
+            var hasPremiumParent = await _db.Users.AnyAsync(u => u.FamilyId == child.FamilyId && u.Role == UserRole.Parent && u.CurrentPlanId > 1);
+            if (!hasPremiumParent)
+                throw new InvalidOperationException("Tính năng đề xuất quà tặng chỉ dành cho các gia đình có gói Premium.");
+
+            var reward = new Reward
+            {
+                FamilyId = child.FamilyId.Value,
+                CreatedByUserId = childUserId,
+                Title = dto.Title,
+                Description = dto.Description,
+                RequiredPoints = 0, // Parent will set this later
+                IsSuggested = true,
+                CreatedAt = FamiHub.API.Utils.AppTime.Now
+            };
+
+            _db.Rewards.Add(reward);
+            await _db.SaveChangesAsync();
+
+            // Notify Parents
+            var parents = await _db.Users.Where(u => u.FamilyId == child.FamilyId && u.Role == UserRole.Parent).ToListAsync();
+            foreach (var p in parents)
+            {
+                var notification = new Notification
+                {
+                    UserId = p.Id,
+                    Title = "Con yêu đề xuất quà tặng mới!",
+                    Message = $"Bé {child.Name} vừa đề xuất quà tặng: {reward.Title}. Hãy vào xem và thiết lập điểm cho con nhé!",
+                    Type = "REWARD",
+                    RelatedId = reward.Id
+                };
+                _db.Notifications.Add(notification);
+                await _pushNotificationService.SendNotificationAsync(p.Id, notification.Title, notification.Message, p.FcmToken);
+            }
+
+            return await GetRewardByIdAsync(reward.Id, childUserId);
         }
 
         public async Task<bool> DeleteRewardAsync(int rewardId, int parentUserId)
@@ -161,6 +212,11 @@ namespace FamiHub.API.Services
 
             var reward = await _db.Rewards.FindAsync(rewardId);
             if (reward == null || (reward.FamilyId != null && reward.FamilyId != child.FamilyId)) return null;
+
+            if (reward.IsSuggested)
+            {
+                throw new InvalidOperationException("Phần thưởng này đang chờ cha mẹ duyệt và đặt điểm, chưa thể đổi được.");
+            }
 
             if (child.Points < reward.RequiredPoints)
             {
@@ -255,6 +311,7 @@ namespace FamiHub.API.Services
             Title = r.Title,
             Description = r.Description,
             RequiredPoints = r.RequiredPoints,
+            IsSuggested = r.IsSuggested,
             CreatedAt = r.CreatedAt,
             CreatedBy = r.CreatedBy != null ? AuthService.MapToDto(r.CreatedBy) : null
         };

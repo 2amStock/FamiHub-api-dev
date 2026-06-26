@@ -33,5 +33,7 @@ namespace FamiHub.API.Models
         public DateTime? UpdatedAt { get; set; }
 
         public ICollection<RewardRedemption> Redemptions { get; set; } = new List<RewardRedemption>();
+
+        public bool IsSuggested { get; set; } = false;
     }
 }
