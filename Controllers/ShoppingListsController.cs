@@ -146,7 +146,7 @@ namespace FamiHub.API.Controllers
             };
 
             // Notify clients
-            await _hubContext.Groups.ClientGroup($"Family_{familyId.Value}").SendAsync("ShoppingItemAdded", itemDto);
+            await _hubContext.Clients.Group($"Family_{familyId.Value}").SendAsync("ShoppingItemAdded", itemDto);
 
             return Ok(itemDto);
         }
@@ -192,7 +192,7 @@ namespace FamiHub.API.Controllers
                 CreatedAt = item.CreatedAt
             };
 
-            await _hubContext.Groups.ClientGroup($"Family_{familyId.Value}").SendAsync("ShoppingItemUpdated", itemDto);
+            await _hubContext.Clients.Group($"Family_{familyId.Value}").SendAsync("ShoppingItemUpdated", itemDto);
 
             return Ok(itemDto);
         }
@@ -216,7 +216,7 @@ namespace FamiHub.API.Controllers
             item.ShoppingList!.UpdatedAt = FamiHub.API.Utils.AppTime.Now;
             await _context.SaveChangesAsync();
 
-            await _hubContext.Groups.ClientGroup($"Family_{familyId.Value}").SendAsync("ShoppingItemDeleted", id);
+            await _hubContext.Clients.Group($"Family_{familyId.Value}").SendAsync("ShoppingItemDeleted", id);
 
             return Ok(new { message = "Đã xóa." });
         }
@@ -244,7 +244,7 @@ namespace FamiHub.API.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            await _hubContext.Groups.ClientGroup($"Family_{familyId.Value}").SendAsync("ShoppingListArchived");
+            await _hubContext.Clients.Group($"Family_{familyId.Value}").SendAsync("ShoppingListArchived");
 
             return Ok(new { message = "Đã chốt danh sách mua sắm." });
         }
