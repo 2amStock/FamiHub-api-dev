@@ -20,17 +20,26 @@ namespace FamiHub.API.Controllers
 
         private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         private string GetRole() => User.FindFirstValue(ClaimTypes.Role) ?? "";
-        private int? GetFamilyId()
+        private async Task<int?> GetFamilyIdAsync()
         {
             var familyIdStr = User.FindFirst("FamilyId")?.Value;
-            if (string.IsNullOrEmpty(familyIdStr)) return null;
-            return int.Parse(familyIdStr);
+            if (!string.IsNullOrEmpty(familyIdStr) && int.TryParse(familyIdStr, out var id)) return id;
+
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out var userId))
+            {
+                var db = HttpContext.RequestServices.GetRequiredService<FamiHub.API.Data.AppDbContext>();
+                var user = await db.Users.FindAsync(userId);
+                return user?.FamilyId;
+            }
+
+            return null;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetEvents()
         {
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null) return BadRequest(new { message = "Bạn chưa tham gia gia đình nào." });
 
             var events = await _familyEventService.GetEventsAsync(familyId.Value);

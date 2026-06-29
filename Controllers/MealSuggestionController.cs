@@ -37,7 +37,7 @@ namespace FamiHub.API.Controllers
             }
 
             var userId = GetUserId();
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null)
                 return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
@@ -66,7 +66,7 @@ namespace FamiHub.API.Controllers
         [HttpGet("history")]
         public async Task<IActionResult> GetHistory([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null)
                 return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
@@ -80,7 +80,7 @@ namespace FamiHub.API.Controllers
         [HttpGet("favorites")]
         public async Task<IActionResult> GetFavorites()
         {
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null)
                 return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
@@ -94,7 +94,7 @@ namespace FamiHub.API.Controllers
         [HttpPut("{id}/favorite")]
         public async Task<IActionResult> ToggleFavorite(int id)
         {
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null)
                 return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
@@ -118,7 +118,7 @@ namespace FamiHub.API.Controllers
                 return StatusCode(403, new { message = "Chỉ phụ huynh mới có quyền xóa gợi ý món ăn." });
             }
 
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null)
                 return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
@@ -164,7 +164,7 @@ namespace FamiHub.API.Controllers
         public async Task<IActionResult> AddToShoppingList(int id)
         {
             var userId = GetUserId();
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null) return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
             var db = HttpContext.RequestServices.GetRequiredService<FamiHub.API.Data.AppDbContext>();
@@ -329,11 +329,21 @@ namespace FamiHub.API.Controllers
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         }
 
-        private int? GetFamilyId()
+        private async Task<int?> GetFamilyIdAsync()
         {
             var familyIdClaim = User.FindFirstValue("FamilyId");
-            if (string.IsNullOrEmpty(familyIdClaim)) return null;
-            return int.TryParse(familyIdClaim, out var id) ? id : null;
+            if (!string.IsNullOrEmpty(familyIdClaim) && int.TryParse(familyIdClaim, out var id)) 
+                return id;
+
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out var userId))
+            {
+                var db = HttpContext.RequestServices.GetRequiredService<FamiHub.API.Data.AppDbContext>();
+                var user = await db.Users.FindAsync(userId);
+                return user?.FamilyId;
+            }
+
+            return null;
         }
     }
 }

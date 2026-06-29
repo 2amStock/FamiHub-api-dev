@@ -26,11 +26,20 @@ namespace FamiHub.API.Controllers
 
         private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        private int? GetFamilyId()
+        private async Task<int?> GetFamilyIdAsync()
         {
             var familyIdClaim = User.FindFirstValue("FamilyId");
-            if (string.IsNullOrEmpty(familyIdClaim)) return null;
-            return int.TryParse(familyIdClaim, out var id) ? id : null;
+            if (!string.IsNullOrEmpty(familyIdClaim) && int.TryParse(familyIdClaim, out var id)) 
+                return id;
+
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out var userId))
+            {
+                var user = await _context.Users.FindAsync(userId);
+                return user?.FamilyId;
+            }
+
+            return null;
         }
 
         private async Task<bool> CheckSubscriptionAccessAsync(int userId)
@@ -70,7 +79,7 @@ namespace FamiHub.API.Controllers
         public async Task<IActionResult> GetActiveList()
         {
             var userId = GetUserId();
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null) return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
             if (!await CheckSubscriptionAccessAsync(userId))
@@ -110,7 +119,7 @@ namespace FamiHub.API.Controllers
         public async Task<IActionResult> AddItem([FromBody] CreateShoppingItemDto request)
         {
             var userId = GetUserId();
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null) return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
             if (!await CheckSubscriptionAccessAsync(userId))
@@ -158,7 +167,7 @@ namespace FamiHub.API.Controllers
         public async Task<IActionResult> UpdateItem(int id, [FromBody] UpdateShoppingItemDto request)
         {
             var userId = GetUserId();
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null) return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
             var item = await _context.ShoppingItems
@@ -203,7 +212,7 @@ namespace FamiHub.API.Controllers
         [HttpDelete("items/{id}")]
         public async Task<IActionResult> DeleteItem(int id)
         {
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null) return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
             var item = await _context.ShoppingItems
@@ -231,7 +240,7 @@ namespace FamiHub.API.Controllers
             if (role != "Parent")
                 return StatusCode(403, new { message = "Chỉ phụ huynh mới có quyền chốt danh sách." });
 
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null) return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
             var activeList = await _context.ShoppingLists
@@ -255,7 +264,7 @@ namespace FamiHub.API.Controllers
         [HttpGet("archived")]
         public async Task<IActionResult> GetArchivedLists()
         {
-            var familyId = GetFamilyId();
+            var familyId = await GetFamilyIdAsync();
             if (familyId == null) return BadRequest(new { message = "Bạn cần tham gia một gia đình trước." });
 
             var lists = await _context.ShoppingLists
